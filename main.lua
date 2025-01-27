@@ -10,16 +10,15 @@ local downloadOutputChannel = love.thread.getChannel("downloadOutput")
 local downloadThread
 local directory = "roms"
 local depotDownloaderHandle
-
 local splashlib = require("splash")  -- Assuming "splash.lua" is the correct module name
 local splash -- Declare the splash screen variable globally
-local fadeParams = {
-    fadeAlpha = 1,
-    fadeDurationFrames = 20,
-    fadeTimer = 0,
-    fadeType = "in", -- can be "in" or "out"
-    fadeFinished = false
-}
+local push = require "push"
+love.graphics.setDefaultFilter("nearest", "nearest")
+local gameWidth, gameHeight = 640, 480 -- Fixed game resolution
+local windowWidth, windowHeight = love.window.getDesktopDimensions()
+-- windowHeight = 1280, 720 -- Uncomment this when using on desktop to show windows
+push:setupScreen(gameWidth, gameHeight, windowWidth, windowHeight, {fullscreen = false})
+local login = require("login")
 
 function loadBackground()
     -- Release previously loaded images (if any)
@@ -71,21 +70,51 @@ end
 
 function love.keypressed(key)
     -- Handle keyboard input
-    if splash and key == "space" then
-        splash:skip()
+    if splash and not splash.done then
+        splash:keypressed(key)
+    else
+        login.keypressed(key)
     end
 end
 
 function love.gamepadpressed(joystick, button)
-    -- Handle gamepad input
-    if splash and button == "b" then  -- Adjust "a" to the specific button you want to use
-        splash:skip()
+    if splash and not splash.done then
+        splash:gamepadpressed(button)
+    elseif login and not login.done then 
+        login.gamepadpressed(joystick, button)
+    else
+        if inputTimer <= 0 then
+            -- Handle gamepad input
+            if button == "dpup" then
+                selectedGame = math.max(1, selectedGame - 1)
+                if selectedGame < (currentPage - 1) * gamesPerPage + 1 then
+                    currentPage = math.max(1, currentPage - 1)
+                end
+            elseif button == "dpdown" then
+                selectedGame = math.min(#games.list, selectedGame + 1)
+                if selectedGame > currentPage * gamesPerPage then
+                    currentPage = math.min(math.ceil(#games.list / gamesPerPage), currentPage + 1)
+                end
+            elseif button == "a" then
+                startDownload(games.list[selectedGame])
+            elseif button == "rightshoulder" then
+                selectedGame = math.min(#games.list, selectedGame + 2)
+                if selectedGame > currentPage * gamesPerPage then
+                    currentPage = math.min(math.ceil(#games.list / gamesPerPage), currentPage + 1)
+                end
+            elseif button == "leftshoulder" then
+                selectedGame = math.max(1, selectedGame - 2)
+                if selectedGame < (currentPage - 1) * gamesPerPage + 1 then
+                    currentPage = math.max(1, currentPage - 2)
+                end
+            end
+            inputTimer = inputCooldown
+        end
     end
 end
 
 local logFileName = "log_depot.txt"
 local lastLine = "Start"
-local login = {}
 
 local function loadLogin()
     -- Define the file path for login.txt
@@ -101,18 +130,16 @@ local function loadLogin()
 
     -- Read the first two lines: username and password
     local username = file:read("*line")
-    local password = file:read("*line")
     file:close()
 
     -- Validate the data read from the file
-    if not username or not password then
+    if not username then
         print("Error: login.txt does not contain valid data!")
         return false
     end
 
     -- Store the data in the `login` table
     login.username = username
-    login.password = password
 
     print("Login loaded successfully: " .. login.username)
     return true
@@ -122,7 +149,8 @@ end
 local function readLastLine()
     local file = io.open(logFileName, "r")
     if not file then
-        print("Error: log_depot.txt not found!")
+        --print("Error: log_depot.txt not found!")
+        --print(lovedir .. logFileName)
         return nil
     end
 
@@ -136,11 +164,14 @@ end
 
 -- Download-Startfunktion (Simuliert Download-Prozess in einem separaten Thread)
 function startDownload(game)
+    local passwordChannel = love.thread.getChannel("passwordChannel")
+    passwordChannel:push(password)
     local selected = games.list[selectedGame]
     if selected then
         print("Name: " .. selected.name)
         print("GameData: " .. selected.data)
         print("Username: " .. (login.username or "N/A"))
+        --print(password) -- Printing the password to the log.txt DONT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING
         print("---------------")
     end
 
@@ -156,6 +187,7 @@ function startDownload(game)
     end
 
     downloadThread = love.thread.newThread(downloadThreadPath)  -- Lade den Thread aus der externen Datei
+    
     if not downloadThread then
         print("Error: Failed to create download thread!")
         isDownloading = false
@@ -166,7 +198,8 @@ function startDownload(game)
         downloadThread:start({
             game = game,
             username = login.username,
-            password = login.password
+            password = password.value,
+            channel = love.thread.getChannel("downloadProgress")
         })  -- Starte den Thread und übergebe die Spielparameter
     end)
 
@@ -203,7 +236,17 @@ local function fileContains(filepath, searchString)
 end
 
 function love.load()
+    music = love.audio.newSource("assets/music.mp3", "stream") -- "stream" is used for large audio files
+    music:setLooping(true) -- Set to true if you want the music to loop
+    music:play() -- Start playing the music
+    login.load()
     initializeSplashScreen(love.graphics.getWidth(), love.graphics.getHeight())
+    --font
+    local screenWidth, screenHeight = love.graphics.getWidth(), love.graphics.getHeight()
+    local fontsize =  (screenHeight / 20 )
+    local font = love.graphics.newFont(fontsize)
+    love.graphics.setFont(font)
+    
     loadBackground()
     if not loadLogin() then
         print("Failed to load login data. Exiting...")
@@ -219,12 +262,21 @@ function love.load()
 end
 
 function love.update(dt)
+    login.update(dt)
     inputTimer = inputTimer - dt
     if splash and not splash.done then
         splash:update(dt)
         return
     end
-
+    
+    if login.isDone() then
+        login.done = true
+        password = login.getPassword()
+    else
+        login.done = false
+    end
+    
+    
     -- Update the last line from the log file
     local newLastLine = readLastLine()
     if newLastLine and newLastLine ~= lastLine then
@@ -253,7 +305,7 @@ function love.update(dt)
                 currentPage = math.min(math.ceil(#games.list / gamesPerPage), currentPage + 1)
             end
             inputTimer = inputCooldown
-        elseif joystick:isGamepadDown("a") and not isDownloading then
+        elseif joystick:isGamepadDown("a") and not isDownloading and login.done then
             startDownload(games.list[selectedGame])
             inputTimer = inputCooldown
         elseif joystick:isGamepadDown("rightshoulder") then
@@ -261,11 +313,13 @@ function love.update(dt)
             if selectedGame > currentPage * gamesPerPage then
                 currentPage = math.min(math.ceil(#games.list / gamesPerPage), currentPage + 1)
             end
+            inputTimer = inputCooldown
         elseif joystick:isGamepadDown("leftshoulder") then
             selectedGame = math.max(1, selectedGame - 2)
             if selectedGame < (currentPage - 1) * gamesPerPage + 1 then
                 currentPage = math.max(1, currentPage - 2)
             end
+            inputTimer = inputCooldown
         end
     end
 end
@@ -274,6 +328,9 @@ function love.draw()
     -- Draw the splash screen if it exists and is not done
     if splash and not splash.done then
         splash:draw()
+    elseif login and not login.done then
+        drawBackground()
+        login.draw()
     else
         drawBackground()
         local screenWidth, screenHeight = love.graphics.getWidth(), love.graphics.getHeight()

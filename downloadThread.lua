@@ -1,18 +1,22 @@
 -- This script is intended to be run as a thread in LOVE2D
 
 -- Retrieve the passed game data and credentials
+local passwordChannel = love.thread.getChannel("passwordChannel")
+local password = passwordChannel:pop()
+
 local gameData = ...
 local lovedir = love.filesystem.getSourceBaseDirectory()
 local depotDownloaderPath = "DepotDownloader"  -- Ensure this path is correct
 
 local username = gameData.username
-local password = gameData.password
 local game = gameData.game
 
--- Debug print to check received credentials and game data
-print("Received Username: " .. (username or "N/A"))
-print("Received Game Data: " .. (game.data or "N/A"))
+-- Ensure the password is not nil before using it
+if not password then
+    error("Password is nil")
+end
 
+print("Password Download: " .. password)
 -- Construct the command to run DepotDownloader
 local cmd = string.format(
     '"%s/%s" %s -username %s -password %s',
@@ -40,6 +44,8 @@ local success, reason, exitCode = handle:close()
 
 -- Write completion information to the log file
 local logFile = io.open(logFilePath, "a")
+logFile:write("Download completed with exit code: " .. tostring(exitCode))
+logFile:close()
 
 -- Signal that the download is done
 local progressChannel = love.thread.getChannel("downloadProgress")
