@@ -48,6 +48,7 @@ function games.load(directory)
         {name = "Goldon Hornet", data = "-app 739260 -depot 739261 -dir " .. directory .. "/goldenhornet/gamedata"},
         {name = "Gravity Circuit", data = "-app 858710 -depot 858711 -dir " .. directory .. "/gravitycircuit", description = " rename win64_steam to gamedata"},
 		{name = "Half Life", data = "-app 70 -dir " .. directory .. "/halflife/"},
+        {name = "Nuclear Throne", data = "-app 242680 -depot 242683 -manifest 1972149697962479575 -dir " .. directory .. "/nuclearthrone/"},
 		{name = "Stardew Valley", data = "-app 413150 -depot 413153 -manifest 8332166493523218127 -dir " .. directory .. "/stardewvalley/gamedata/"},
         -- Add more games here
     }
