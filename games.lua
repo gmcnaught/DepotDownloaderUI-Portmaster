@@ -79,8 +79,3 @@ function games.load(directory)
 end
 
 return games
-
-
-
-
-
