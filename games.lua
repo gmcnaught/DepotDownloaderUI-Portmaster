@@ -55,22 +55,32 @@ function games.load(directory)
         {name = "Hammerwatch", data = "-app 239070 -depot 239071 -manifest 6038447391393479561 -dir " .. directory .. "/hammerwatch/" },
         {name = "Hyper Light Drifter", data = "-app 257850 -depot 257851 -manifest 2557763276340557312 -dir " .. directory .. "/hyperlightdrifter/assets/" },
         {name = "LOVE 3", data = "-app 1604300 -depot 1604302 -manifest 2416319664696347085 -dir " .. directory .. "/love3/" },
+        {name = "Luck be a Landlord", data = "-app 1404850 -depot 1404853 -manifest 5385995170406685945 -dir " .. directory .. "/luckbealandlord/" },
         {name = "Lunar Lux", data = "-app 1932680 -depot 1932681 -manifest 4860005663388923912 -dir " .. directory .. "/lunarlux/assets/" },
         {name = "Mercenary Kings", data = "-app 218820 -depot 218823 -manifest 5041255923054087555 -dir " .. directory .. "/mercenarykings/gamedata/" },
         {name = "Monolith / Star of Providence", data = "-app 603960 -depot 603961 -manifest 7781865563262412532 -dir " .. directory .. "/monolith/" },
         {name = "Mystik Belle", data = "-app 332610 -depot 332613 -manifest 3942707501747355559 -dir " .. directory .. "/mystikbelle/assets/" },
         {name = "Nuclear Throne", data = "-app 242680 -depot 242683 -manifest 1972149697962479575 -dir " .. directory .. "/nuclearthrone/"},
         {name = "Papers, Please", data = "-app 239030 -depot 239033 -manifest 4681415496149094331 -dir " .. directory .. "/papersplease/gamedata/" },
+        {name = "PuPaiPo Space Deluxe", data = "-app 1148500 -depot 1148502 -dir " .. directory .. "/pupaipospacedx/gamedata/" },
         {name = "Shovel Knight Pocket Dungeon", data = "-app 1184760 -depot 1184761 -manifest 5529913677570552716 -dir " .. directory .. "/shovelknightpocketdungeon/assets/" },
         {name = "Stardew Valley", data = "-app 413150 -depot 413153 -manifest 8332166493523218127 -dir " .. directory .. "/stardewvalley/gamedata/"},
+        {name = "Strikey Sisters", data = "-app 643880 -depot 643883 -dir " .. directory .. "/strikeysisters/gamedata/" },
         {name = "Super Hexagon", data = "-app 221640 -depot 221643 -manifest 7186315654381968499 -dir " .. directory .. "/superhexagon/" },
         {name = "Super Meat Boy", data = "-app 40800 -depot 40802 -manifest 6556596646716197166 -dir " .. directory .. "/supermeatboy/gamedata/" },
         {name = "Super Raft Boat Classic", data = "-app 1541250 -depot 1541251 -manifest 4671292693324189046 -dir " .. directory .. "/superraftboatclassic/gamedata/" },
+        {name = "Super Star Path", data = "-app 375120 -depot 375123 -dir " .. directory .. "/superstarpath/gamedata/" },
         {name = "The Void Rains Upon Her Heart", data = "-app 790060 -depot 790061 -manifest 7858860086893173396 -dir " .. directory .. "/tvruhh/" },
         {name = "Will You Snail", data = "-app 1115050 -depot 1115051 -manifest 8411373960038250729 -dir " .. directory .. "/willyo usnail/assets/" },
         {name = "Wuppo", data = "-app 400630 -depot 400631 -manifest 7979843440656313703 -dir " .. directory .. "/wuppo/assets/" },
+        {name = "You Died But a Necromancer Revived You", data = "-app 1037100 -depot 1037102 -dir " .. directory .. "/youdiedbanry/gamedata/" }
         -- Add more games here
     }
 end
 
 return games
+
+
+
+
+
